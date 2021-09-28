@@ -143,13 +143,13 @@ class COPOD(BaseDetector):
             original_size = X.shape[0]
             X = np.concatenate((self.X_train, X), axis=0)
 
-        self.U_l = -1 * np.log(np.apply_along_axis(ecdf, 0, X))
-        self.U_r = -1 * np.log(np.apply_along_axis(ecdf, 0, -X))
+        self_U_l = -1 * np.log(np.apply_along_axis(ecdf, 0, X))
+        self_U_r = -1 * np.log(np.apply_along_axis(ecdf, 0, -X))
 
         skewness = np.sign(skew(X, axis=0))
-        self.U_skew = self.U_l * -1 * np.sign(
-            skewness - 1) + self.U_r * np.sign(skewness + 1)
-        self.O = np.maximum(self.U_skew, np.add(self.U_l, self.U_r) / 2)
+        self_U_skew = self_U_l * -1 * np.sign(
+            skewness - 1) + self_U_r * np.sign(skewness + 1)
+        self.O = np.maximum(self_U_skew, np.add(self_U_l, self_U_r) / 2)
         if hasattr(self, 'X_train'):
             decision_scores_ = self.O.sum(axis=1)[-original_size:]
         else:
@@ -195,23 +195,23 @@ class COPOD(BaseDetector):
             for i in range(n_jobs))
 
         # recover the results
-        self.U_l = np.zeros([n_samples, n_features])
-        self.U_r = np.zeros([n_samples, n_features])
+        self_U_l = np.zeros([n_samples, n_features])
+        self_U_r = np.zeros([n_samples, n_features])
 
         for i in range(n_jobs):
-            self.U_l[:, starts[i]:starts[i + 1]] = all_results[i][0]
-            self.U_r[:, starts[i]:starts[i + 1]] = all_results[i][1]
+            self_U_l[:, starts[i]:starts[i + 1]] = all_results[i][0]
+            self_U_r[:, starts[i]:starts[i + 1]] = all_results[i][1]
 
-        # self.U_l = pd.DataFrame(-1 * np.log(self.U_l))
-        # self.U_r = pd.DataFrame(-1 * np.log(self.U_r))
+        # self_U_l = pd.DataFrame(-1 * np.log(self_U_l))
+        # self_U_r = pd.DataFrame(-1 * np.log(self_U_r))
 
-        self.U_l = -1 * np.log(self.U_l)
-        self.U_r = -1 * np.log(self.U_r)
+        self_U_l = -1 * np.log(self_U_l)
+        self_U_r = -1 * np.log(self_U_r)
 
         skewness = np.sign(skew(X, axis=0))
-        self.U_skew = self.U_l * -1 * np.sign(
-            skewness - 1) + self.U_r * np.sign(skewness + 1)
-        self.O = np.maximum(self.U_skew, np.add(self.U_l, self.U_r) / 2)
+        self_U_skew = self_U_l * -1 * np.sign(
+            skewness - 1) + self_U_r * np.sign(skewness + 1)
+        self.O = np.maximum(self_U_skew, np.add(self_U_l, self_U_r) / 2)
         if hasattr(self, 'X_train'):
             decision_scores_ = self.O.sum(axis=1)[-original_size:]
         else:
